@@ -26,6 +26,7 @@ public class ChannelClient : IChannelClient
 
     public bool IsConnected => _isConnected && _ws.State == WebSocketState.Open;
     public string ChannelId => _channelId;
+    public bool IsRegistered => _isRegistered;
 
     public event EventHandler<ChatMessage>? MessageReceived;
     public event EventHandler<bool>? ConnectionStateChanged;

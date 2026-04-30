@@ -6,13 +6,16 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <AssemblyName>OpenClaw.DesignHub</AssemblyName>
+    <AssemblyName>OpenClaw.DesignHub2</AssemblyName>
     <RootNamespace>OpenClaw.DesignHub</RootNamespace>
     <Version>1.0.0</Version>
     <Authors>Bigbi</Authors>
     <Company>OpenClaw</Company>
     <Product>OpenClaw Design Hub</Product>
     <Description>OpenClaw 设计中台 - 灵动岛悬浮对话窗口</Description>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
   <ItemGroup>

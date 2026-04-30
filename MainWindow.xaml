@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:OpenClaw.DesignHub.ViewModels"
         Title="OpenClaw DesignHub"
-        Width="400" Height="600"
+        Width="200"
+        Height="48"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -11,21 +12,24 @@
         Topmost="True"
         ShowInTaskbar="False"
         WindowStartupLocation="Manual"
-        Left="100" Top="100">
+        Left="100"
+        Top="100"
+        MouseLeftButtonDown="OnWindowMouseLeftButtonDown"
+        MouseRightButtonDown="OnWindowMouseRightButtonDown">
 
     <Window.Resources>
-        <!-- 展开动画 -->
+        <!-- 展开动画：Window 尺寸从 200x48 → 400x600 -->
         <Storyboard x:Key="ExpandStoryboard">
-            <DoubleAnimation Storyboard.TargetName="MainBorder"
-                             Storyboard.TargetProperty="Height"
-                             From="48" To="600" Duration="0:0:0.3">
+            <DoubleAnimation Storyboard.TargetName="MainWindow"
+                             Storyboard.TargetProperty="Width"
+                             From="200" To="400" Duration="0:0:0.3">
                 <DoubleAnimation.EasingFunction>
                     <CubicEase EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="MainBorder"
-                             Storyboard.TargetProperty="Width"
-                             From="200" To="400" Duration="0:0:0.3">
+            <DoubleAnimation Storyboard.TargetName="MainWindow"
+                             Storyboard.TargetProperty="Height"
+                             From="48" To="600" Duration="0:0:0.3">
                 <DoubleAnimation.EasingFunction>
                     <CubicEase EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
@@ -45,16 +49,16 @@
 
         <!-- 收起动画 -->
         <Storyboard x:Key="CollapseStoryboard">
-            <DoubleAnimation Storyboard.TargetName="MainBorder"
-                             Storyboard.TargetProperty="Height"
-                             From="600" To="48" Duration="0:0:0.25">
+            <DoubleAnimation Storyboard.TargetName="MainWindow"
+                             Storyboard.TargetProperty="Width"
+                             From="400" To="200" Duration="0:0:0.25">
                 <DoubleAnimation.EasingFunction>
                     <CubicEase EasingMode="EaseIn"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="MainBorder"
-                             Storyboard.TargetProperty="Width"
-                             From="400" To="200" Duration="0:0:0.25">
+            <DoubleAnimation Storyboard.TargetName="MainWindow"
+                             Storyboard.TargetProperty="Height"
+                             From="600" To="48" Duration="0:0:0.25">
                 <DoubleAnimation.EasingFunction>
                     <CubicEase EasingMode="EaseIn"/>
                 </DoubleAnimation.EasingFunction>
@@ -73,215 +77,193 @@
         </Storyboard>
     </Window.Resources>
 
-    <Grid>
-        <!-- 主容器 -->
-        <Border x:Name="MainBorder"
-                Background="#E6202020"
-                CornerRadius="24"
-                Height="48"
-                Width="200"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                MouseLeftButtonDown="OnDragStart">
-            <Border.Effect>
-                <DropShadowEffect Color="Black" Opacity="0.4" BlurRadius="20" ShadowDepth="4"/>
-            </Border.Effect>
+    <Border x:Name="MainBorder"
+            Background="#E6202020"
+            CornerRadius="24">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" Opacity="0.4" BlurRadius="20" ShadowDepth="4"/>
+        </Border.Effect>
 
-            <Grid>
-                <!-- 悬浮球内容 -->
-                <Grid x:Name="PillContent" Visibility="Visible">
+        <Grid>
+            <!-- 悬浮球内容 (收起状态) -->
+            <Grid x:Name="PillContent" Visibility="Visible">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Ellipse Grid.Column="0"
+                         Width="28" Height="28"
+                         Margin="10,0,0,0"
+                         Fill="#6366F1">
+                    <Ellipse.Effect>
+                        <DropShadowEffect Color="#6366F1" Opacity="0.5" BlurRadius="8"/>
+                    </Ellipse.Effect>
+                </Ellipse>
+
+                <TextBlock Grid.Column="1"
+                           Text="OpenClaw"
+                           Foreground="#E4E4E7"
+                           FontSize="13"
+                           FontFamily="Microsoft YaHei UI"
+                           VerticalAlignment="Center"
+                           Margin="8,0,0,0"/>
+
+                <Ellipse Grid.Column="2"
+                         Width="8" Height="8"
+                         Margin="0,0,12,0"
+                         Fill="{Binding IsConnected, Converter={StaticResource BoolToColorConverter}}"
+                         x:Name="StatusDot"/>
+            </Grid>
+
+            <!-- 展开后的聊天面板 -->
+            <Grid x:Name="ChatContent" Visibility="Collapsed" Margin="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- 标题栏 -->
+                <Grid Grid.Row="0" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <TextBlock Text="OpenClaw"
+                                   Foreground="#E4E4E7"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Microsoft YaHei UI"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding ConnectionStatus}"
+                                   Foreground="#A1A1AA"
+                                   FontSize="11"
+                                   FontFamily="Microsoft YaHei UI"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0,0,0"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                            Content="⟳"
+                            FontSize="14"
+                            Width="28" Height="28"
+                            Margin="0,0,4,0"
+                            Background="#3D3D4D"
+                            Foreground="#E4E4E7"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Command="{Binding ConnectCommand}"
+                            Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVisConverter}}"
+                            ToolTip="连接"/>
+
+                    <Button Grid.Column="2"
+                            Content="✕"
+                            FontSize="12"
+                            Width="28" Height="28"
+                            Background="#3D3D4D"
+                            Foreground="#E4E4E7"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Click="OnCollapseClick"
+                            ToolTip="收起"/>
+                </Grid>
+
+                <!-- 消息列表 -->
+                <ScrollViewer Grid.Row="1"
+                              VerticalScrollBarVisibility="Auto"
+                              Background="#1A1A2A"
+                              Padding="8"
+                              Margin="0,0,0,8">
+                    <ItemsControl ItemsSource="{Binding Messages}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,4">
+                                    <Border Background="#6366F1"
+                                            CornerRadius="12"
+                                            Padding="12,8"
+                                            MaxWidth="320"
+                                            HorizontalAlignment="Right"
+                                            Visibility="{Binding Role, Converter={StaticResource RoleToVisConverter}, ConverterParameter=user}">
+                                        <TextBlock Text="{Binding Content}"
+                                                   Foreground="White"
+                                                   FontSize="13"
+                                                   FontFamily="Microsoft YaHei UI"
+                                                   TextWrapping="Wrap"/>
+                                    </Border>
+                                    <Border Background="#3D3D4D"
+                                            CornerRadius="12"
+                                            Padding="12,8"
+                                            MaxWidth="320"
+                                            HorizontalAlignment="Left"
+                                            Visibility="{Binding Role, Converter={StaticResource RoleToVisConverter}, ConverterParameter=assistant}">
+                                        <TextBlock Text="{Binding Content}"
+                                                   Foreground="#E4E4E7"
+                                                   FontSize="13"
+                                                   FontFamily="Microsoft YaHei UI"
+                                                   TextWrapping="Wrap"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding Content}"
+                                               Foreground="#A1A1AA"
+                                               FontSize="11"
+                                               FontFamily="Microsoft YaHei UI"
+                                               HorizontalAlignment="Center"
+                                               Visibility="{Binding Role, Converter={StaticResource RoleToVisConverter}, ConverterParameter=system}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- 输入区 -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Logo/图标 -->
-                    <Ellipse Grid.Column="0"
-                             Width="28" Height="28"
-                             Margin="10,0,0,0"
-                             Fill="#6366F1">
-                        <Ellipse.Effect>
-                            <DropShadowEffect Color="#6366F1" Opacity="0.5" BlurRadius="8"/>
-                        </Ellipse.Effect>
-                    </Ellipse>
+                    <TextBox Grid.Column="0"
+                             Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                             Background="#3D3D4D"
+                             Foreground="#E4E4E7"
+                             BorderThickness="0"
+                             Padding="12,8"
+                             FontSize="13"
+                             FontFamily="Microsoft YaHei UI"
+                             AcceptsReturn="True"
+                             MaxHeight="80"
+                             VerticalScrollBarVisibility="Auto"
+                             KeyDown="OnInputKeyDown">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
 
-                    <!-- 状态文字 -->
-                    <TextBlock Grid.Column="1"
-                               Text="OpenClaw"
-                               Foreground="#E4E4E7"
-                               FontSize="13"
-                               FontFamily="Microsoft YaHei UI"
-                               VerticalAlignment="Center"
-                               Margin="8,0,0,0"/>
-
-                    <!-- 连接状态指示 -->
-                    <Ellipse Grid.Column="2"
-                             Width="8" Height="8"
-                             Margin="0,0,12,0"
-                             Fill="{Binding IsConnected, Converter={StaticResource BoolToColorConverter}}"
-                             x:Name="StatusDot"/>
-                </Grid>
-
-                <!-- 展开后的聊天面板 -->
-                <Grid x:Name="ChatContent" Visibility="Collapsed" Margin="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- 标题栏 -->
-                    <Grid Grid.Row="0" Margin="0,0,0,8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0" Orientation="Horizontal">
-                            <TextBlock Text="OpenClaw"
-                                       Foreground="#E4E4E7"
-                                       FontSize="14"
-                                       FontWeight="SemiBold"
-                                       FontFamily="Microsoft YaHei UI"
-                                       VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding ConnectionStatus}"
-                                       Foreground="#A1A1AA"
-                                       FontSize="11"
-                                       FontFamily="Microsoft YaHei UI"
-                                       VerticalAlignment="Center"
-                                       Margin="8,0,0,0"/>
-                        </StackPanel>
-
-                        <!-- 连接按钮 -->
-                        <Button Grid.Column="1"
-                                Content="⟳"
-                                FontSize="14"
-                                Width="28" Height="28"
-                                Margin="0,0,4,0"
-                                Background="#3D3D4D"
-                                Foreground="#E4E4E7"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                Command="{Binding ConnectCommand}"
-                                Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVisConverter}}"
-                                ToolTip="连接"/>
-
-                        <!-- 收起按钮 -->
-                        <Button Grid.Column="2"
-                                Content="✕"
-                                FontSize="12"
-                                Width="28" Height="28"
-                                Background="#3D3D4D"
-                                Foreground="#E4E4E7"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                Click="OnCollapseClick"
-                                ToolTip="收起"/>
-                    </Grid>
-
-                    <!-- 消息列表 -->
-                    <ScrollViewer Grid.Row="1"
-                                  VerticalScrollBarVisibility="Auto"
-                                  Background="#1A1A2A"
-                                  Padding="8"
-                                  Margin="0,0,0,8">
-                        <ItemsControl ItemsSource="{Binding Messages}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,4">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <!-- 用户消息 -->
-                                        <Border Background="#6366F1"
-                                                CornerRadius="12"
-                                                Padding="12,8"
-                                                MaxWidth="320"
-                                                HorizontalAlignment="Right"
-                                                Visibility="{Binding Role, Converter={StaticResource RoleToVisConverter}, ConverterParameter=user}">
-                                            <TextBlock Text="{Binding Content}"
-                                                       Foreground="White"
-                                                       FontSize="13"
-                                                       FontFamily="Microsoft YaHei UI"
-                                                       TextWrapping="Wrap"/>
-                                        </Border>
-
-                                        <!-- 助手消息 -->
-                                        <Border Background="#3D3D4D"
-                                                CornerRadius="12"
-                                                Padding="12,8"
-                                                MaxWidth="320"
-                                                HorizontalAlignment="Left"
-                                                Visibility="{Binding Role, Converter={StaticResource RoleToVisConverter}, ConverterParameter=assistant}">
-                                            <TextBlock Text="{Binding Content}"
-                                                       Foreground="#E4E4E7"
-                                                       FontSize="13"
-                                                       FontFamily="Microsoft YaHei UI"
-                                                       TextWrapping="Wrap"/>
-                                        </Border>
-
-                                        <!-- 系统消息 -->
-                                        <TextBlock Text="{Binding Content}"
-                                                   Foreground="#A1A1AA"
-                                                   FontSize="11"
-                                                   FontFamily="Microsoft YaHei UI"
-                                                   HorizontalAlignment="Center"
-                                                   Visibility="{Binding Role, Converter={StaticResource RoleToVisConverter}, ConverterParameter=system}"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-
-                    <!-- 输入区 -->
-                    <Grid Grid.Row="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBox Grid.Column="0"
-                                 Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
-                                 Background="#3D3D4D"
-                                 Foreground="#E4E4E7"
-                                 BorderThickness="0"
-                                 Padding="12,8"
-                                 FontSize="13"
-                                 FontFamily="Microsoft YaHei UI"
-                                 AcceptsReturn="True"
-                                 MaxHeight="80"
-                                 VerticalScrollBarVisibility="Auto"
-                                 KeyDown="OnInputKeyDown">
-                            <TextBox.Resources>
-                                <Style TargetType="Border">
-                                    <Setter Property="CornerRadius" Value="8"/>
-                                </Style>
-                            </TextBox.Resources>
-                        </TextBox>
-
-                        <Button Grid.Column="1"
-                                Content="➤"
-                                FontSize="14"
-                                Width="36" Height="36"
-                                Margin="4,0,0,0"
-                                Background="#6366F1"
-                                Foreground="White"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                Command="{Binding SendMessageCommand}"
-                                ToolTip="发送">
-                            <Button.Resources>
-                                <Style TargetType="Border">
-                                    <Setter Property="CornerRadius" Value="8"/>
-                                </Style>
-                            </Button.Resources>
-                        </Button>
-                    </Grid>
+                    <Button Grid.Column="1"
+                            Content="➤"
+                            FontSize="14"
+                            Width="36" Height="36"
+                            Margin="4,0,0,0"
+                            Background="#6366F1"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Command="{Binding SendMessageCommand}"
+                            ToolTip="发送">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
                 </Grid>
             </Grid>
-        </Border>
-    </Grid>
+        </Grid>
+    </Border>
 </Window>

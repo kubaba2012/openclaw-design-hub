@@ -56,6 +56,7 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<ChatItem> Messages { get; } = new();
 
     public ICommand ToggleExpandCommand { get; }
+    public ICommand ExpandCommand { get; }
     public ICommand SendMessageCommand { get; }
     public ICommand ConnectCommand { get; }
     public ICommand DisconnectCommand { get; }
@@ -65,6 +66,7 @@ public partial class MainViewModel : ObservableObject
         _channel = channel;
 
         ToggleExpandCommand = new RelayCommand(() => IsExpanded = !IsExpanded);
+        ExpandCommand = new RelayCommand(() => IsExpanded = true);
         SendMessageCommand = new AsyncRelayCommand(SendMessageAsync, () => !string.IsNullOrWhiteSpace(InputText) && !IsSending && IsConnected);
         ConnectCommand = new AsyncRelayCommand(ConnectAsync, () => !IsConnected);
         DisconnectCommand = new AsyncRelayCommand(DisconnectAsync, () => IsConnected);

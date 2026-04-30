@@ -1,4 +1,6 @@
+using System;
 using System.ComponentModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -8,30 +10,28 @@ using OpenClaw.DesignHub.ViewModels;
 
 namespace OpenClaw.DesignHub;
 
-/// <summary>
-/// 主窗口 - 灵动岛悬浮球
-/// </summary>
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
     private readonly MainViewModel _viewModel;
     private bool _isExpanded;
-    private Point _dragStart;
+    private bool _isDragging;
+    private Point _dragStartPoint;
+    private static readonly string LogPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "OpenClaw.DesignHub", "debug.log");
 
     public bool IsExpanded
     {
         get => _isExpanded;
         set
         {
-            if (_isExpanded != value)
-            {
-                _isExpanded = value;
-                OnPropertyChanged(nameof(IsExpanded));
-
-                if (value)
-                    Expand();
-                else
-                    Collapse();
-            }
+            _isExpanded = value;
+            OnPropertyChanged(nameof(IsExpanded));
+            if (value)
+                Expand();
+            else
+                Collapse();
+            Log($"IsExpanded = {value}");
         }
     }
 
@@ -39,94 +39,119 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     public MainWindow()
     {
-        InitializeComponent();
+        Directory.CreateDirectory(Path.GetDirectoryName(LogPath)!);
+        Log("MainWindow ctor start");
 
-        // 注册转换器
+        InitializeComponent();
+        Log("InitializeComponent done, IsExpanded=" + _isExpanded);
+
         Resources.Add("BoolToColorConverter", new BoolToColorConverter());
         Resources.Add("InverseBoolToVisConverter", new InverseBoolToVisibilityConverter());
         Resources.Add("RoleToVisConverter", new RoleToVisibilityConverter());
 
-        // 初始化 ViewModel
         var channel = new ChannelClient();
         _viewModel = new MainViewModel(channel);
         DataContext = _viewModel;
 
-        // 订阅展开命令
-        MouseDown += OnMouseDown;
+        Log("MainWindow ctor done");
     }
 
-    /// <summary>
-    /// 鼠标按下 - 开始拖动或展开
-    /// </summary>
-    private void OnMouseDown(object sender, MouseButtonEventArgs e)
+    private void OnWindowMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ChangedButton == MouseButton.Left && !IsExpanded)
+        if (e.ChangedButton != MouseButton.Left) return;
+
+        if (!_isExpanded)
         {
-            _dragStart = e.GetPosition(this);
+            Log("Left click: expanding");
+            IsExpanded = true;
+            e.Handled = true;
+            return;
         }
+
+        // Expanded: start drag
+        Log("Left click: starting drag");
+        _isDragging = true;
+        _dragStartPoint = e.GetPosition(this);
+        CaptureMouse();
+        e.Handled = true;
     }
 
-    /// <summary>
-    /// 拖动开始
-    /// </summary>
-    private void OnDragStart(object sender, MouseButtonEventArgs e)
+    private void OnWindowMouseMove(object sender, MouseEventArgs e)
     {
-        if (e.ChangedButton == MouseButton.Left)
-        {
-            if (!IsExpanded)
-            {
-                // 展开
-                IsExpanded = true;
-                e.Handled = true;
-            }
-            else
-            {
-                // 拖动
-                DragMove();
-            }
-        }
+        if (!_isDragging) return;
+        var pos = e.GetPosition(this);
+        var delta = pos - _dragStartPoint;
+        Left += delta.X;
+        Top += delta.Y;
     }
 
-    /// <summary>
-    /// 收起按钮点击
-    /// </summary>
+    private void OnWindowMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isDragging) return;
+        _isDragging = false;
+        ReleaseMouseCapture();
+        e.Handled = true;
+    }
+
+    private void OnWindowMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        Log("Right click: showing context menu");
+        if (e.ChangedButton != MouseButton.Right) return;
+
+        var menu = new System.Windows.Controls.ContextMenu();
+
+        var expandItem = new System.Windows.Controls.MenuItem { Header = _isExpanded ? "收起" : "展开" };
+        expandItem.Click += (s, args) => IsExpanded = !_isExpanded;
+
+        var exitItem = new System.Windows.Controls.MenuItem { Header = "退出" };
+        exitItem.Click += (s, args) =>
+        {
+            Log("Exit from context menu");
+            Application.Current.Shutdown();
+        };
+
+        menu.Items.Add(expandItem);
+        menu.Items.Add(new System.Windows.Controls.Separator());
+        menu.Items.Add(exitItem);
+
+        menu.PlacementTarget = this;
+        menu.IsOpen = true;
+        e.Handled = true;
+    }
+
     private void OnCollapseClick(object sender, RoutedEventArgs e)
     {
         IsExpanded = false;
     }
 
-    /// <summary>
-    /// 输入框按键
-    /// </summary>
     private void OnInputKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter && !Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
         {
-            // 发送消息
-            if (_viewModel.SendMessageCommand.CanExecute(null))
-            {
+            if (_viewModel?.SendMessageCommand?.CanExecute(null) == true)
                 _viewModel.SendMessageCommand.Execute(null);
-            }
             e.Handled = true;
         }
     }
 
-    /// <summary>
-    /// 展开
-    /// </summary>
     private void Expand()
     {
-        var storyboard = (Storyboard)Resources["ExpandStoryboard"];
-        storyboard.Begin();
+        Log("Expand() called");
+        var sb = Resources["ExpandStoryboard"] as Storyboard;
+        Log("ExpandStoryboard=" + (sb != null));
+        sb?.Begin();
     }
 
-    /// <summary>
-    /// 收起
-    /// </summary>
     private void Collapse()
     {
-        var storyboard = (Storyboard)Resources["CollapseStoryboard"];
-        storyboard.Begin();
+        Log("Collapse() called");
+        var sb = Resources["CollapseStoryboard"] as Storyboard;
+        sb?.Begin();
+    }
+
+    private static void Log(string msg)
+    {
+        try { File.AppendAllText(LogPath, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n"); } catch { }
     }
 
     protected virtual void OnPropertyChanged(string propertyName)
@@ -135,56 +160,28 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
 }
 
-#region 转换器
-
-/// <summary>
-/// 布尔值转颜色（连接状态指示）
-/// </summary>
+#region Converters
 public class BoolToColorConverter : System.Windows.Data.IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        return value is true ? Brushes.LimeGreen : Brushes.Red;
-    }
-
+        => value is true ? Brushes.LimeGreen : Brushes.Red;
     public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 }
 
-/// <summary>
-/// 布尔值反转转可见性
-/// </summary>
 public class InverseBoolToVisibilityConverter : System.Windows.Data.IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        return value is false ? Visibility.Visible : Visibility.Collapsed;
-    }
-
+        => value is false ? Visibility.Visible : Visibility.Collapsed;
     public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 }
 
-/// <summary>
-/// 角色转可见性
-/// </summary>
 public class RoleToVisibilityConverter : System.Windows.Data.IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        var role = value as string;
-        var expected = parameter as string;
-        return role == expected ? Visibility.Visible : Visibility.Collapsed;
-    }
-
+        => value as string == parameter as string ? Visibility.Visible : Visibility.Collapsed;
     public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 }
-
 #endregion
