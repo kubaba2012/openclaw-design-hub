@@ -55,6 +55,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _viewModel = new MainViewModel(channel);
         DataContext = _viewModel;
 
+        Loaded += (s, e) =>
+        {
+            var breathingStoryboard = (Storyboard)Resources["BreathingStoryboard"];
+            breathingStoryboard.Begin();
+        };
+
         Log("MainWindow ctor done");
     }
 

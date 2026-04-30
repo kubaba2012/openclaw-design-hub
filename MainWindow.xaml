@@ -20,6 +20,22 @@
         MouseRightButtonDown="OnWindowMouseRightButtonDown">
 
     <Window.Resources>
+        <!-- 蓝点呼吸动画 -->
+        <Storyboard x:Key="BreathingStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="BreathingDot"
+                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                             From="1.0" To="1.3" Duration="0:0:1.5"
+                             AutoReverse="True"/>
+            <DoubleAnimation Storyboard.TargetName="BreathingDot"
+                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                             From="1.0" To="1.3" Duration="0:0:1.5"
+                             AutoReverse="True"/>
+            <DoubleAnimation Storyboard.TargetName="BreathingDot"
+                             Storyboard.TargetProperty="(UIElement.Opacity)"
+                             From="0.6" To="1.0" Duration="0:0:1.5"
+                             AutoReverse="True"/>
+        </Storyboard>
+
         <!-- 展开动画：只切换可见性 -->
         <Storyboard x:Key="ExpandStoryboard">
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PillContent"
@@ -46,7 +62,7 @@
     </Window.Resources>
 
     <Border x:Name="MainBorder"
-            Background="#E6202020"
+            Background="Transparent"
             CornerRadius="24">
         <Border.Effect>
             <DropShadowEffect Color="Black" Opacity="0.4" BlurRadius="20" ShadowDepth="4"/>
@@ -55,10 +71,15 @@
         <Grid>
             <!-- 悬浮球内容 (收起状态) -->
             <Grid x:Name="PillContent" Visibility="Visible">
-                <Ellipse Width="20" Height="20"
+                <Ellipse x:Name="BreathingDot"
+                         Width="20" Height="20"
                          HorizontalAlignment="Center"
                          VerticalAlignment="Center"
-                         Fill="#6366F1">
+                         Fill="#6366F1"
+                         RenderTransformOrigin="0.5,0.5">
+                    <Ellipse.RenderTransform>
+                        <ScaleTransform/>
+                    </Ellipse.RenderTransform>
                     <Ellipse.Effect>
                         <DropShadowEffect Color="#6366F1" Opacity="0.6" BlurRadius="10"/>
                     </Ellipse.Effect>
