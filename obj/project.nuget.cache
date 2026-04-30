@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "JRg5fwTaoGo=",
+  "dgSpecHash": "xc4JARjv51I=",
   "success": true,
-  "projectFilePath": "C:\\Users\\aisa\\.qclaw\\workspace\\OpenClaw.DesignHub\\OpenClaw.DesignHub.csproj",
+  "projectFilePath": "c:\\Users\\aisa\\.qclaw\\workspace\\OpenClaw.DesignHub\\OpenClaw.DesignHub.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\aisa\\.nuget\\packages\\communitytoolkit.mvvm\\8.2.2\\communitytoolkit.mvvm.8.2.2.nupkg.sha512",
     "C:\\Users\\aisa\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\8.0.0\\microsoft.extensions.dependencyinjection.8.0.0.nupkg.sha512",

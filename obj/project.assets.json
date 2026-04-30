@@ -790,11 +790,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\aisa\\.qclaw\\workspace\\OpenClaw.DesignHub\\OpenClaw.DesignHub.csproj",
+      "projectUniqueName": "c:\\Users\\aisa\\.qclaw\\workspace\\OpenClaw.DesignHub\\OpenClaw.DesignHub.csproj",
       "projectName": "OpenClaw.DesignHub2",
-      "projectPath": "C:\\Users\\aisa\\.qclaw\\workspace\\OpenClaw.DesignHub\\OpenClaw.DesignHub.csproj",
+      "projectPath": "c:\\Users\\aisa\\.qclaw\\workspace\\OpenClaw.DesignHub\\OpenClaw.DesignHub.csproj",
       "packagesPath": "C:\\Users\\aisa\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\aisa\\.qclaw\\workspace\\OpenClaw.DesignHub\\obj\\",
+      "outputPath": "c:\\Users\\aisa\\.qclaw\\workspace\\OpenClaw.DesignHub\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\aisa\\AppData\\Roaming\\NuGet\\NuGet.Config"

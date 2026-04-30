@@ -14,65 +14,33 @@
         WindowStartupLocation="Manual"
         Left="100"
         Top="100"
-        MouseLeftButtonDown="OnWindowMouseLeftButtonDown"
+        PreviewMouseLeftButtonDown="OnWindowPreviewMouseLeftButtonDown"
+        MouseMove="OnWindowMouseMove"
+        MouseLeftButtonUp="OnWindowMouseLeftButtonUp"
         MouseRightButtonDown="OnWindowMouseRightButtonDown">
 
     <Window.Resources>
-        <!-- 展开动画：Window 尺寸从 200x48 → 400x600 -->
+        <!-- 展开动画：只切换可见性 -->
         <Storyboard x:Key="ExpandStoryboard">
-            <DoubleAnimation Storyboard.TargetName="MainWindow"
-                             Storyboard.TargetProperty="Width"
-                             From="200" To="400" Duration="0:0:0.3">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseOut"/>
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="MainWindow"
-                             Storyboard.TargetProperty="Height"
-                             From="48" To="600" Duration="0:0:0.3">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseOut"/>
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="MainBorder"
-                             Storyboard.TargetProperty="CornerRadius"
-                             From="24" To="16" Duration="0:0:0.3"/>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PillContent"
                                            Storyboard.TargetProperty="Visibility">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Collapsed}"/>
             </ObjectAnimationUsingKeyFrames>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ChatContent"
                                            Storyboard.TargetProperty="Visibility">
-                <DiscreteObjectKeyFrame KeyTime="0:0:0.15" Value="{x:Static Visibility.Visible}"/>
+                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}"/>
             </ObjectAnimationUsingKeyFrames>
         </Storyboard>
 
         <!-- 收起动画 -->
         <Storyboard x:Key="CollapseStoryboard">
-            <DoubleAnimation Storyboard.TargetName="MainWindow"
-                             Storyboard.TargetProperty="Width"
-                             From="400" To="200" Duration="0:0:0.25">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseIn"/>
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="MainWindow"
-                             Storyboard.TargetProperty="Height"
-                             From="600" To="48" Duration="0:0:0.25">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseIn"/>
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="MainBorder"
-                             Storyboard.TargetProperty="CornerRadius"
-                             From="16" To="24" Duration="0:0:0.25"/>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ChatContent"
                                            Storyboard.TargetProperty="Visibility">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Collapsed}"/>
             </ObjectAnimationUsingKeyFrames>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PillContent"
                                            Storyboard.TargetProperty="Visibility">
-                <DiscreteObjectKeyFrame KeyTime="0:0:0.15" Value="{x:Static Visibility.Visible}"/>
+                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}"/>
             </ObjectAnimationUsingKeyFrames>
         </Storyboard>
     </Window.Resources>
@@ -87,34 +55,14 @@
         <Grid>
             <!-- 悬浮球内容 (收起状态) -->
             <Grid x:Name="PillContent" Visibility="Visible">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <Ellipse Grid.Column="0"
-                         Width="28" Height="28"
-                         Margin="10,0,0,0"
+                <Ellipse Width="20" Height="20"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
                          Fill="#6366F1">
                     <Ellipse.Effect>
-                        <DropShadowEffect Color="#6366F1" Opacity="0.5" BlurRadius="8"/>
+                        <DropShadowEffect Color="#6366F1" Opacity="0.6" BlurRadius="10"/>
                     </Ellipse.Effect>
                 </Ellipse>
-
-                <TextBlock Grid.Column="1"
-                           Text="OpenClaw"
-                           Foreground="#E4E4E7"
-                           FontSize="13"
-                           FontFamily="Microsoft YaHei UI"
-                           VerticalAlignment="Center"
-                           Margin="8,0,0,0"/>
-
-                <Ellipse Grid.Column="2"
-                         Width="8" Height="8"
-                         Margin="0,0,12,0"
-                         Fill="{Binding IsConnected, Converter={StaticResource BoolToColorConverter}}"
-                         x:Name="StatusDot"/>
             </Grid>
 
             <!-- 展开后的聊天面板 -->

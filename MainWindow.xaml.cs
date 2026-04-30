@@ -15,7 +15,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly MainViewModel _viewModel;
     private bool _isExpanded;
     private bool _isDragging;
-    private Point _dragStartPoint;
+    private Point _dragStartScreenPoint;
+    private Point _dragStartWindowPoint;
+    private static readonly double DragThreshold = 5.0;
     private static readonly string LogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "OpenClaw.DesignHub", "debug.log");
@@ -56,40 +58,69 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Log("MainWindow ctor done");
     }
 
-    private void OnWindowMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    private void OnWindowPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton != MouseButton.Left) return;
 
-        if (!_isExpanded)
-        {
-            Log("Left click: expanding");
-            IsExpanded = true;
-            e.Handled = true;
-            return;
-        }
+        var source = e.OriginalSource as System.Windows.DependencyObject;
+        if (IsInteractiveControl(source)) return;
 
-        // Expanded: start drag
-        Log("Left click: starting drag");
-        _isDragging = true;
-        _dragStartPoint = e.GetPosition(this);
-        CaptureMouse();
+        _dragStartScreenPoint = PointToScreen(e.GetPosition(this));
+        _dragStartWindowPoint = new Point(Left, Top);
         e.Handled = true;
     }
 
     private void OnWindowMouseMove(object sender, MouseEventArgs e)
     {
-        if (!_isDragging) return;
-        var pos = e.GetPosition(this);
-        var delta = pos - _dragStartPoint;
-        Left += delta.X;
-        Top += delta.Y;
+        if (e.LeftButton != MouseButtonState.Pressed) return;
+
+        var currentScreenPoint = PointToScreen(e.GetPosition(this));
+        var delta = currentScreenPoint - _dragStartScreenPoint;
+        var distance = Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y);
+
+        if (distance >= DragThreshold && !_isDragging)
+        {
+            _isDragging = true;
+            CaptureMouse();
+        }
+
+        if (_isDragging)
+        {
+            Left = _dragStartWindowPoint.X + delta.X;
+            Top = _dragStartWindowPoint.Y + delta.Y;
+        }
+    }
+
+    private bool IsInteractiveControl(System.Windows.DependencyObject? element)
+    {
+        while (element != null)
+        {
+            if (element is System.Windows.Controls.Button ||
+                element is System.Windows.Controls.TextBox ||
+                element is System.Windows.Controls.CheckBox ||
+                element is System.Windows.Controls.ComboBox ||
+                element is System.Windows.Controls.ListBox)
+            {
+                return true;
+            }
+            element = System.Windows.Media.VisualTreeHelper.GetParent(element);
+        }
+        return false;
     }
 
     private void OnWindowMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (!_isDragging) return;
-        _isDragging = false;
-        ReleaseMouseCapture();
+        if (!_isDragging && !_isExpanded)
+        {
+            Log("Left click: expanding");
+            IsExpanded = true;
+        }
+
+        if (_isDragging)
+        {
+            _isDragging = false;
+            ReleaseMouseCapture();
+        }
         e.Handled = true;
     }
 
@@ -137,16 +168,23 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void Expand()
     {
         Log("Expand() called");
-        var sb = Resources["ExpandStoryboard"] as Storyboard;
-        Log("ExpandStoryboard=" + (sb != null));
-        sb?.Begin();
+        Width = 400;
+        Height = 600;
+        MainBorder.CornerRadius = new CornerRadius(16);
+        PillContent.Visibility = Visibility.Collapsed;
+        ChatContent.Visibility = Visibility.Visible;
+        Log($"Window size: {Width}x{Height}");
     }
 
     private void Collapse()
     {
         Log("Collapse() called");
-        var sb = Resources["CollapseStoryboard"] as Storyboard;
-        sb?.Begin();
+        ChatContent.Visibility = Visibility.Collapsed;
+        PillContent.Visibility = Visibility.Visible;
+        Width = 200;
+        Height = 48;
+        MainBorder.CornerRadius = new CornerRadius(24);
+        Log($"Window size: {Width}x{Height}");
     }
 
     private static void Log(string msg)
